@@ -31,7 +31,7 @@ GOOGLE_MAPS_KEY=
 4. Launch the bot with the command
 
 ```bash
-python3 earthquake_bot.py
+python3 main.py
 ```
 
 5. Stop the bot: Ctrl+C/Command+C

@@ -1,5 +1,7 @@
 import telebot
 from telebot import types
+import logging
+from datetime import datetime
 import time
 import requests
 from geopy.geocoders import Nominatim
@@ -12,6 +14,7 @@ token = os.environ.get('TG_BOT_TOKEN')
 google_maps_api_key = os.environ.get('GOOGLE_MAPS_KEY')
 
 bot = telebot.TeleBot(token)
+logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 #State dict
 settings = {
@@ -86,6 +89,10 @@ def get_coordinates(city):
 #Sends a photo of map with epicenter of earthquake
 #and information about it
 def get_last_earthquake(message):
+    #Log file entry
+    log_message = f"User: {message.from_user.username}\tCity: {settings['city']}\tRadius: {settings['maxradius']}"
+    logging.info(log_message)
+    
     url = 'https://earthquake.usgs.gov/fdsnws/event/1/query'
     params = {
         'format': 'geojson',
