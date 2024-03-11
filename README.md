@@ -1,5 +1,3 @@
-# earthquake
-
 # Last Earthquake Telegram Bot
 
 A bot to retrieve data on the last earthquake in the radius of a given city.
