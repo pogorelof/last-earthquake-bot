@@ -10,13 +10,13 @@ A bot to retrieve data on the last earthquake in the radius of a given city.
 git clone https://github.com/username/earthquake-bot.git
 ```
 
-1. Install the required libraries
+2. Install the required libraries
 
 ```bash
 pip install -r requirements.txt
 ```
 
-1. Make .env file from .env.example
+3. Make .env file from .env.example
 
 ```
 TG_BOT_TOKEN=
@@ -28,13 +28,13 @@ GOOGLE_MAPS_KEY=
 
 [console.cloud.google.com](http://console.cloud.google.com/)
 
-1. Launch the bot with the command
+4. Launch the bot with the command
 
 ```bash
 python3 earthquake_bot.py
 ```
 
-1. Stop the bot: Ctrl+C/Command+C
+5. Stop the bot: Ctrl+C/Command+C
 
 ## Usage
 
