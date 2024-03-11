@@ -76,6 +76,8 @@ def on_click(message):
     elif message.text == 'Редактировать радиус':
         bot.send_message(message.chat.id, 'Введите радиус: ', reply_markup=types.ReplyKeyboardRemove())
         bot.register_next_step_handler(message, edit_maxradius)
+    else:
+        main(message)
 
 #Return coordinates of city
 def get_coordinates(city):
