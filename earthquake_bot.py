@@ -1,14 +1,15 @@
 import telebot
 from telebot import types
-from selenium import webdriver
 import folium
 import time
 import os
 import requests
 from geopy.geocoders import Nominatim
+import io
+from PIL import Image
 
 
-token = 'YOUR_TOKEN'
+token = 'TG_BOT_TOKEN'
 bot = telebot.TeleBot(token)
 
 settings = {}
@@ -43,19 +44,18 @@ def get_last_earthquake(message):
         main(message)
 
     earthquake = json['features'][0]['geometry']['coordinates']
-    map = folium.Map(location=[earthquake[1], earthquake[0]], zoom_start=9)
-    folium.Marker([earthquake[1], earthquake[0]]).add_to(map)
 
-    map.save("map.html")
+    google_maps_api_key = "GOOGLE_API_KEY"
+    map_center = f"{earthquake[1]},{earthquake[0]}"
+    map_zoom = 9
+    map_size = "800x600"
+    map_markers = f"markers=color:red%7C{earthquake[1]},{earthquake[0]}"
+    map_url = f"https://maps.googleapis.com/maps/api/staticmap?center={map_center}&zoom={map_zoom}&size={map_size}&{map_markers}&key={google_maps_api_key}"
 
-    driver = webdriver.Chrome()
-    current_dir = os.getcwd()
-    map_file = os.path.join(current_dir, 'map.html')
-    driver.get(f"file:///{map_file}")
-    time.sleep(1)
+    response = requests.get(map_url)
+    with open('map.png', 'wb') as file:
+        file.write(response.content)
 
-    driver.save_screenshot("map.png")
-    driver.quit()
 
     photo = open('./map.png', 'rb')
 
@@ -68,7 +68,7 @@ def get_last_earthquake(message):
     place = json['features'][0]['properties']['place']
     magnitude = json['features'][0]['properties']['mag']
     depth = earthquake[2]
-    
+
     unix_timestamp = str(json['features'][0]['properties']['time'])[:-3]
     local_time = time.localtime(int(unix_timestamp))
     formatted_date = time.strftime("%Y-%m-%d %H:%M:%S", local_time)
