@@ -13,8 +13,68 @@ google_maps_api_key = os.environ.get('GOOGLE_MAPS_KEY')
 
 bot = telebot.TeleBot(token)
 
-settings = {}
+#State dict
+settings = {
+    'city': None,
+    'longitude': None,
+    'latitude': None,
+    'maxradius': None
+}
 
+#Bot entry point
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.chat.id, 'Укажите город:')
+    bot.register_next_step_handler(message, city_handler)
+
+def city_handler(message):
+    city = message.text
+    latitude, longitude = get_coordinates(city)
+
+    bot.send_message(message.chat.id, 'Введите радиус(км), вокруг вашего города, где могло быть зафиксировано замлятрясение: ')
+    
+    settings['city'] = city
+    settings['longitude'] = longitude
+    settings['latitude'] = latitude
+    
+    bot.register_next_step_handler(message, maxradius_handler)
+
+def maxradius_handler(message):
+    maxradius = message.text
+
+    if maxradius.isdigit():
+        settings['maxradius'] = maxradius
+        bot.send_message(message.chat.id, 'Ваши настройки были сохранены!')
+        main(message)
+    else:
+        bot.send_message(message.chat.id, 'Нужно ввести число')
+        bot.register_next_step_handler(message, maxradius_handler)
+    
+    
+#Button rendering
+def main(message):
+    markup = types.ReplyKeyboardMarkup()
+    btn1 = types.KeyboardButton('Посмотреть последнее ближайшее землетрясение')
+    btn2 = types.KeyboardButton('Редактировать город')
+    btn3 = types.KeyboardButton('Редактировать радиус')
+    markup.row(btn1)
+    markup.row(btn2, btn3)
+
+    bot.send_message(message.chat.id, 'Выберите действие:', reply_markup=markup)
+    bot.register_next_step_handler(message, on_click)
+
+#Click handler
+def on_click(message):
+    if message.text == 'Посмотреть последнее ближайшее землетрясение':
+        get_last_earthquake(message)
+    elif message.text == 'Редактировать город':
+        bot.send_message(message.chat.id, 'Введите город: ', reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(message, edit_city)
+    elif message.text == 'Редактировать радиус':
+        bot.send_message(message.chat.id, 'Введите радиус: ', reply_markup=types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(message, edit_maxradius)
+
+#Return coordinates of city
 def get_coordinates(city):
     geolocator = Nominatim(user_agent="my_app")
     location = geolocator.geocode(city)
@@ -23,17 +83,15 @@ def get_coordinates(city):
     else:
         return None, None
 
+#Sends a photo of map with epicenter of earthquake
+#and information about it
 def get_last_earthquake(message):
-    longitude = settings['longitude']
-    latitude = settings['latitude']
-    maxradius = settings['maxradius']
-
     url = 'https://earthquake.usgs.gov/fdsnws/event/1/query'
     params = {
         'format': 'geojson',
-        'latitude': latitude,
-        'longitude': longitude,
-        'maxradiuskm': maxradius,
+        'latitude': settings['latitude'],
+        'longitude': settings['longitude'],
+        'maxradiuskm': settings['maxradius'],
     }
     response = requests.get(url, params=params)
     json = response.json()  
@@ -55,7 +113,6 @@ def get_last_earthquake(message):
     response = requests.get(map_url)
     with open('map.png', 'wb') as file:
         file.write(response.content)
-
 
     photo = open('./map.png', 'rb')
 
@@ -91,55 +148,6 @@ def edit_maxradius(message):
     settings['maxradius'] = maxradius
     bot.send_message(message.chat.id, 'Радиус был обновлен!')
     main(message)
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, 'Укажите город:')
-    bot.register_next_step_handler(message, city_handler)
-
-def city_handler(message):
-    city = message.text
-    latitude, longitude = get_coordinates(city)
-
-    bot.send_message(message.chat.id, 'Введите радиус(км), вокруг вашего города, где могло быть зафиксировано замлятрясение: ')
-    
-    settings['city'] = city
-    settings['longitude'] = longitude
-    settings['latitude'] = latitude
-    
-    bot.register_next_step_handler(message, maxradius_handler)
-
-def maxradius_handler(message):
-    maxradius = message.text
-    settings['maxradius'] = maxradius
-
-    bot.send_message(message.chat.id, 'Ваши настройки были сохранены!')
-
-    main(message)
-    
-def main(message):
-    markup = types.ReplyKeyboardMarkup()
-    btn1 = types.KeyboardButton('Посмотреть последнее ближайшее землетрясение')
-    btn2 = types.KeyboardButton('Редактировать город')
-    btn3 = types.KeyboardButton('Редактировать радиус')
-    markup.row(btn1)
-    markup.row(btn2, btn3)
-
-    bot.send_message(message.chat.id, 'Выберите действие:', reply_markup=markup)
-    bot.register_next_step_handler(message, on_click)
-
-def on_click(message):
-    if message.text == 'Посмотреть последнее ближайшее землетрясение':
-        get_last_earthquake(message)
-    elif message.text == 'Редактировать город':
-        bot.send_message(message.chat.id, 'Введите город: ', reply_markup=types.ReplyKeyboardRemove())
-        bot.register_next_step_handler(message, edit_city)
-    elif message.text == 'Редактировать радиус':
-        bot.send_message(message.chat.id, 'Введите радиус: ', reply_markup=types.ReplyKeyboardRemove())
-        bot.register_next_step_handler(message, edit_maxradius)
-
-
-
 
 
 bot.infinity_polling()
