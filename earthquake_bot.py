@@ -117,7 +117,7 @@ def get_last_earthquake(message):
     photo = open('./map.png', 'rb')
 
     bot.send_message(message.chat.id, f''' 
-    <b>Последнее землятрясение: </b> в радиусе <i>{settings['maxradius']} км</i> от города <i>{settings['city'].capitalize()}</i>
+    <b>Последнее землятрясение: </b>в радиусе <i>{settings['maxradius']} км</i> от города <i>{settings['city'].capitalize()}</i>
     ''', parse_mode='html', reply_markup=types.ReplyKeyboardRemove())
 
     bot.send_photo(message.chat.id, photo)
