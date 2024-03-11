@@ -1,15 +1,16 @@
 import telebot
 from telebot import types
-import folium
 import time
-import os
 import requests
 from geopy.geocoders import Nominatim
-import io
-from PIL import Image
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
-token = 'TG_BOT_TOKEN'
+token = os.environ.get('TG_BOT_TOKEN')
+google_maps_api_key = os.environ.get('GOOGLE_MAPS_KEY')
+
 bot = telebot.TeleBot(token)
 
 settings = {}
@@ -45,7 +46,6 @@ def get_last_earthquake(message):
 
     earthquake = json['features'][0]['geometry']['coordinates']
 
-    google_maps_api_key = "GOOGLE_API_KEY"
     map_center = f"{earthquake[1]},{earthquake[0]}"
     map_zoom = 9
     map_size = "800x600"
